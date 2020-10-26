@@ -1,7 +1,7 @@
 # @ String(label = "Analyst name", description = "Your Name") analystName
 # @ String(label = "Date of ANALYSIS", description = "Date in YYYYMMDD form") analysisDate
 # @ String(label = "Date of EXPERIMENT", description = "Date in YYYYMMDD form") date
-# @ String(label = "Fly Line", choices = ("w; sqh>UTR::GFP/+; GR1>GAL4/+", "w; sqh>UTR::GFP/+ ; GR1>GAL4/UAS>hop-RNAi", "w; UASp>Bazooka::mGFP/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>GFP::PAR1(N1S)/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>Bazooka::mCherry/mata4-GAL4; sqh>UTR::GFP/+"), style = "list") defaultFlyLine
+# @ String(label = "Fly Line", choices = ("w; sqh>UTR::GFP/+; GR1>GAL4/+", "w; sqh>UTR::GFP/+ ; GR1>GAL4/UAS>hop-RNAi", "w; UASp>Bazooka::mGFP/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>GFP::PAR1(N1S)/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>Bazooka::mCherry/mata4-GAL4; +/sqh>UTR::GFP", "w; UASp>Bazooka::mCherry/UASp>GFP::PAR1(N1S); +/mata4-GAL4"), style = "list") defaultFlyLine
 # @ Double(label = "Temperature of the cross", value = 25) defaultTemperature
 # @ String(label = "Reporter for the Gap", choices = ("Jupiter", "UTR", "Tubulin", "NA"), style = "radioButtonHorizontal", value = "NA") gapMarker
 # @ String(label = "Camera", choices = ("ZYLA", "iXON"), value = "ZYLA", style = "radioButtonHorizontal") defaultCamera
@@ -23,7 +23,7 @@
  * 
  */
 
-flyLines = newArray("w; sqh>UTR::GFP/+; GR1>GAL4/+", "w; sqh>UTR::GFP/+ ; GR1>GAL4/UAS>hop-RNAi", "w; UASp>Bazooka::mGFP/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>GFP::PAR1(N1S)/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>Bazooka::mCherry/mata4-GAL4; sqh>UTR::GFP/+");
+flyLines = newArray("w; sqh>UTR::GFP/+; GR1>GAL4/+", "w; sqh>UTR::GFP/+ ; GR1>GAL4/UAS>hop-RNAi", "w; UASp>Bazooka::mGFP/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry", "w; UASp>GFP::PAR1(N1S)/mata4-GAL4; Jupiter::mCherry/Jupiter::mCherry",  "w; UASp>Bazooka::mCherry/mata4-GAL4; +/sqh>UTR::GFP", "w; UASp>Bazooka::mCherry/UASp>GFP::PAR1(N1S); +/mata4-GAL4");
 commentBoxSize = 50;
 
 
@@ -179,6 +179,7 @@ if (answer==1) {
 	phenotypeDialog("Oocyte Phenotype", flyLines, defaultFlyLine, defaultTemperature, commentBoxSize, gapMarker);
 	
 	genotype = Dialog.getChoice();
+	flyNum = Dialog.getNumber();
 	temperature = Dialog.getNumber();
 	stage = Dialog.getChoice();
 	stageComment = Dialog.getString();
@@ -199,7 +200,7 @@ if (answer==1) {
 	
 	setResult("ImageID", newRow, imageID);
 	setResult("Genotype", newRow, genotype);
-	
+	setResult("FlyNum", newRow, flyNum);	
 	setResult("Temperature", newRow, temperature);
 	
 	setResult("Stage", newRow, stage);
@@ -248,6 +249,7 @@ function phenotypeDialog(title, flyLines, defaultFlyLine, defaultTemperature, co
 	Dialog.createNonBlocking(title);
 	Dialog.addMessage("Fly Line", 15);
 	Dialog.addChoice("Genotype: ", flyLines, defaultFlyLine);
+	Dialog.addNumber("Fly Number", 1);
 	Dialog.addNumber("Temperature of the cross", defaultTemperature);
 
 	Dialog.addMessage("Stage Analysis", 15);
