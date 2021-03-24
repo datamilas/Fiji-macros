@@ -187,7 +187,8 @@ if (answer==1) {
 	nucleus = Dialog.getRadioButton();
 	nucleusComment = Dialog.getString();
 	
-	gapStatus = Dialog.getRadioButton();
+	gapPosterior = Dialog.getRadioButton();
+	gapLateral = Dialog.getRadioButton();
 	gapMarker = Dialog.getRadioButton();
 	gapComment = Dialog.getString();
 	
@@ -209,7 +210,8 @@ if (answer==1) {
 	setResult("Nucleus", newRow, nucleus);
 	setResult("NucleusComment", newRow, nucleusComment);
 	
-	setResult("GapStatus", newRow, gapStatus);
+	setResult("PosteriorGap", newRow, gapPosterior);
+	setResult("LateralGap", newRow, gapLateral);
 	setResult("GapMarker", newRow, gapMarker);
 	setResult("GapComment", newRow, gapComment);
 	
@@ -265,6 +267,8 @@ function phenotypeDialog(title, flyLines, defaultFlyLine, defaultTemperature, co
 
 	Dialog.addMessage("Gap at the posterior", 15);
 	Dialog.addRadioButtonGroup("Gap at the posterior:", newArray("Yes", "No", "Not clear", "NA"), 1, 4, "NA");
+	Dialog.addMessage("Gap at the lateral membrane", 15);
+	Dialog.addRadioButtonGroup("Gap at the lateral membrane:", newArray("Yes", "No", "Not clear", "NA"), 1, 4, "NA");
 	Dialog.addRadioButtonGroup("Gap Marker:", newArray("Jupiter", "UTR", "Tubulin", "NA"), 1, 3, gapMarker);
 	Dialog.addString("Comment on the gap:", "", commentBoxSize);
 
