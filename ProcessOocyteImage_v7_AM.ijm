@@ -5,17 +5,19 @@
 
 //AM: added few changes to adjust for data that I had
 
+//AM: adjusted for measuring two channels (30/11/2020)
 
 
+//title='20201117_Oocyte7_before'
+//title='20201117_Oocyte7_after'
 main_title = getDirectory("image");
 main_title = main_title.substring(indexOf(main_title, "20"), lengthOf(main_title)-1);
-
 title = main_title+"_before";
 //title = main_title+"_after";
 
 
 dir = getDirectory("Select a directory to save results")
-//title = getTitle();	//by default the title of active image with additional suffix is used to save results
+
 
 //check if files with specified filename already exist
 selection = dir + title + "_ROI.roi";
@@ -25,41 +27,32 @@ if (File.exists(selection)){
 		run("Fresh Start");
 		exit()};
 };
-//Duplicate only first channel
 
 
-run("Duplicate...", "duplicate channels=1");
 
-print("Image analysed:",title);
-if( endsWith(title, ".tif") ){	
-   title = replace( title, ".tif", "");	//removes ".tif" from the title; so the title is used with different types (.tif, .txt, ...)
-   }
+
 
 run("Set Measurements...", "mean min median redirect=None decimal=3"); //set measurements
 
 //Calculate the median value of the background (cytoplasm of oocyte) to normalize the measurements
+Stack.setChannel(1);;
 setTool("rectangle");
 waitForUser("Square selection", "Draw a rectangle in the cytoplasm of the oocyte. It will be used to normalize the data extracted from the segmented line. Press ok when ready.");
 Roi.getBounds(x, y, width, height);
 makeRectangle(x, y, width, height);
 roiManager("add");
 roiManager("measure");
-bg_median = getResultString("Median", 0);
-bg_mean = getResultString("Mean", 0);
 
-//This part calculates the Rayleigh mean (check with Ivo the formula)
-//If you want to use it, uncomment
-//sum = 0;
-//Roi.getContainedPoints(x,y);
-//nb_pt = x.length;
-//for (i=0; i<nb_pt; i++) {
-//	luminosity=getPixel(x[i],y[i]);
-//    n = parseFloat(luminosity);
-//    if (isNaN(n))
-//        exit("'" + luminosity + "' is not a number");
-//    sum =sum +n*n;
-//}
-//bg_Rayleigh_mean=1.253*sqrt(sum/(2*nb_pt));
+Stack.setChannel(2);
+run("Restore Selection");
+run("Measure");
+
+
+bg_median_green = getResultString("Median", 0);
+bg_mean_green = getResultString("Mean", 0);
+
+bg_median_red = getResultString("Median", 1);
+bg_mean_red = getResultString("Mean", 1);
 
 run("Clear Results");
 roiManager("delete");
@@ -70,7 +63,9 @@ waitForUser("Line selection","Specify a segmented line. Press ok when ready.");
 run("Fit Spline");
 
 //Save the selction
-saveAs("Selection", dir + title + "_ROI.txt");
+saveAs("Selection", dir + title + "_ROI.txt"); //save(dir + File.separator + title + ".txt");
+
+
 
 
 
@@ -85,6 +80,14 @@ if (selectionType!=6) //record all the points the line passes through
   Table.save( dir + title + "_xy.txt");
 
 
+
+image_title = getTitle();
+run("Split Channels");
+C1_title = "C1-" + image_title;
+C2_title = "C2-" + image_title;
+
+selectImage(C1_title);
+run("Restore Selection");
 //Calculate median value for each pixel array along the length of the line
 profile = getProfile();
 run("Straighten...","line = "+n+" title = myname");
@@ -97,18 +100,6 @@ roiManager("Show All");
 roiManager("Measure");
 for (roi=0; roi<roiManager("count"); roi++){
 	roiManager("select",roi);
-	//This parts calculates the Rayleigh mean, uncomment if you want to have it
-	//m = 0; 
-	//Roi.getContainedPoints(x,y);
-	//nb_pt = x.length;
-	//for (i=0; i<nb_pt; i++) {
-	//	luminosity=getPixel(x[i],y[i]);
-    //	n = parseFloat(luminosity);
-    //	if (isNaN(n))
-    //    	exit("'" + luminosity + "' is not a number");
-    //	m =m +n*n;}
-	//mean_Rayleigh=1.253*sqrt(m/(2*nb_pt));
-	
 	max = getResult("Median", roi);
 	median = getResult("Median", roi);
 	mean = getResult("Mean", roi);
@@ -118,25 +109,65 @@ for (roi=0; roi<roiManager("count"); roi++){
     	line = line + getResult(headings[a],roi) + "  ";
 		print(line);
 	
-	setResult("Max_to_bgmean", roi, max/bg_mean);
-	setResult("Median_to_bgmedian", roi, median/bg_median);
-	setResult("Mean_to_bgmean", roi, mean/bg_mean);
+	setResult("Max_to_bgmean", roi, max/bg_mean_green);
+	setResult("Median_to_bgmedian", roi, median/bg_median_green);
+	setResult("Mean_to_bgmean", roi, mean/bg_mean_green);
 	//setResult("RMean_to_Rbg", roi, mean_Rayleigh/bg_Rayleigh_mean);
 	}
 updateResults();
 
 //Save results as txt file
-saveAs("Results", dir + title + ".txt"); //save(dir + File.separator + title + ".txt");
-
+saveAs("Results", dir + title + "_green.txt"); //save(dir + File.separator + title + ".txt");
 
 //Close images and clean roi manager and tables
 run("Clear Results");
 roiManager("delete");
 
-/*
+
+
+
+
+
+selectImage(C1_title);
+selectImage(C2_title);
+run("Restore Selection");
+//Calculate median value for each pixel array along the length of the line
+profile = getProfile();
+run("Straighten...","line = "+n+" title = myname");
+run("Clear Results");
+for (i=0; i<profile.length; i++){
+	makeRectangle(i, 0, 1, n);
+	roiManager("Add");
+	}
+roiManager("Show All");
+roiManager("Measure");
+for (roi=0; roi<roiManager("count"); roi++){
+	roiManager("select",roi);
+	max = getResult("Median", roi);
+	median = getResult("Median", roi);
+	mean = getResult("Mean", roi);
+	headings = split(String.getResultsHeadings);
+	line = "";
+	for (a=0; a<lengthOf(headings); a++)
+    	line = line + getResult(headings[a],roi) + "  ";
+		print(line);
+	
+	setResult("Max_to_bgmean", roi, max/bg_mean_red);
+	setResult("Median_to_bgmedian", roi, median/bg_median_red);
+	setResult("Mean_to_bgmean", roi, mean/bg_mean_red);
+	//setResult("RMean_to_Rbg", roi, mean_Rayleigh/bg_Rayleigh_mean);
+	}
+updateResults();
+
+//Save results as txt file
+saveAs("Results", dir + title + "_red.txt"); //save(dir + File.separator + title + ".txt");
+
+//Close images and clean roi manager and tables
+run("Clear Results");
+roiManager("delete");
+
+
 while (nImages>0) { 
      selectImage(nImages); 
      close();};
-*/
 
-//run("Fresh Start");
