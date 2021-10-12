@@ -27,7 +27,7 @@ if (File.exists(selection)){
 };
 //Duplicate only first channel
 
-
+run("Set Scale...", "distance=0 known=0 unit=pixel");
 run("Duplicate...", "duplicate channels=1");
 
 print("Image analysed:",title);
