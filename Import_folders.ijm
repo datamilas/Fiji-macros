@@ -30,7 +30,7 @@ for (i=0; i<folders_list.length; i++){
 
 }
 
-//Concatenate
+//Concatenate and set channels
 open_images = getList("image.titles");
 run("Concatenate...","title=["+new_title+"]  image1=["+open_images[0]+"] image2=["+open_images[1]+"]");
 
@@ -40,11 +40,6 @@ for (f=0; f<open_images.length-1; f++){
 	
 }
 
-/*
-run("Stack to Hyperstack...", "order=xyczt(default) channels=3 slices=73 frames=50 display=Color");
-*/
-
-//set channel colors
 setSlice(1);
 run("Green");
 run("Enhance Contrast", "saturated=0.35");
@@ -61,19 +56,22 @@ Stack.setDisplayMode("composite");
 
 
 
-
-
-//duplicate first and second to last frame and save them in the saving directory
-
+//duplicate first and last frame and save it in the saving directory
 run("Duplicate...", "duplicate frames=1");
 title_first=new_title+'_first';
 Stack.setDisplayMode("composite");
 saveAs("Tiff",  dir2 + title_first);          
 
+
 selectWindow(new_title);
 getDimensions(channels, height, channels, slices, frames);
-last_frame=frames-1;
-run("Duplicate...", "duplicate frames="+last_frame);
+if (frames==142){
+run("Duplicate...", "duplicate frames=frames");
+}
+else {
+	frames=frames-1;
+	run("Duplicate...", "duplicate frames=frames");
+}
 title_last=new_title+'_last';
 Stack.setDisplayMode("composite");
 saveAs("Tiff",  dir2 + title_last);          
@@ -98,9 +96,9 @@ Stack.setDisplayMode("composite");
 saveAs("Tiff",  dir2 + 'SUM_'+new_title);
 
 
-//SUM of middle slices (30-50)
+//SUM of middle slices
 selectWindow(new_title);
-run("Z Project...", "start=30 stop=50 projection=[Sum Slices] all");
+run("Z Project...", "start=10 stop=40 projection=[Sum Slices] all");
 
 setSlice(1);
 run("Enhance Contrast", "saturated=0.35");
@@ -112,28 +110,46 @@ setSlice(3);
 run("Enhance Contrast", "saturated=0.0");
 
 Stack.setDisplayMode("composite");
-saveAs("Tiff",  dir2 + 'SUM_'+new_title+'_z_30_40'); 
+saveAs("Tiff",  dir2 + 'SUM_'+new_title+'_z_10_40'); 
 
 
-
-
-//Remove transmitted light image from the main file
+//MAX of all slices
 selectWindow(new_title);
-run("Split Channels");
-title_C1='C1-'+new_title;
-title_C2='C2-'+new_title;
-title_C3='C3-'+new_title;
-run("Merge Channels...", "c1=["+title_C1+"] c2=["+title_C2+"] create");
+run("Z Project...", "projection=[Max Intensity] all");
+
+setSlice(1);
+run("Enhance Contrast", "saturated=0.35");
+
+setSlice(2);
+run("Enhance Contrast", "saturated=0.35");
+
+setSlice(3);
+run("Enhance Contrast", "saturated=0.0");
+
+Stack.setDisplayMode("composite");
+saveAs("Tiff",  dir2 + 'MAX_'+new_title); 
+
+//MAX of middle slices
+selectWindow(new_title);
+run("Z Project...", "start=10 stop=40 projection=[Max Intensity] all");
+
+setSlice(1);
+run("Enhance Contrast", "saturated=0.35");
+
+setSlice(2);
+run("Enhance Contrast", "saturated=0.35");
+
+setSlice(3);
+run("Enhance Contrast", "saturated=0.0");
+
+Stack.setDisplayMode("composite");
+saveAs("Tiff",  dir2 + 'MAX_'+new_title+'_z_10_40');
+
 
 //Save the main file 
 selectWindow(new_title);
 saveAs("Tiff",  dir2 + new_title);  
 
-//Save the transmitted light file 
-selectWindow(title_C3);
-title_transmitted = new_title+'_trans';
-run("Duplicate...", "title=["+title_transmitted+"] duplicate slices=36");
-saveAs("Tiff",  dir2 + title_transmitted);
 
 //close all open images and start with new folder
       while (nImages>0) { 

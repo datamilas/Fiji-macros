@@ -265,8 +265,9 @@ for (f = 0; f < folders_list.length; f++) {
 						if (saving) {
 							save(imagePath);
 						}
+						selectWindow(imageTitle);
 						run("Close");
-						
+	
 					}
 
 
